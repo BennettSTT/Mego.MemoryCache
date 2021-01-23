@@ -1,13 +1,14 @@
 ﻿using Mego.MemoryCache.Infrastructure;
+using System.Threading.Tasks;
 
 namespace Mego.MemoryCache.Client2
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            var client = new Client("Client2");
-            client.Run();
+            var client = new Client("Client2", 2, 2);
+            await client.RunAsync();
         }
     }
 }

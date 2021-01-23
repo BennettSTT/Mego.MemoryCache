@@ -1,7 +1,7 @@
-﻿using Dapper;
-using Mego.MemoryCache.Infrastructure.Models;
+﻿using Mego.MemoryCache.Infrastructure.Services;
 using System;
-using System.Data.SqlClient;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -10,18 +10,25 @@ namespace Mego.MemoryCache.Infrastructure
     public class Client
     {
         private readonly string _name;
+        private readonly int _currentClientCount;
+        private readonly int _allClientCount;
         private static Timer _timer;
 
-        private static BigMemoryCache _bigMemoryCache;
+        private const int Interval = 1000; 
+        private static Dictionary<string, string> _cache;
 
-        public Client(string name)
+        public Client(string name, int currentClientCount, int allClientCount)
         {
             _name = name;
+            _currentClientCount = currentClientCount;
+            _allClientCount = allClientCount;
         }
 
-        public void Run()
+        public async Task RunAsync()
         {
             Init();
+
+            await RefreshCacheAndPrintInfoAsync();
 
             while (true)
             {
@@ -29,8 +36,7 @@ namespace Mego.MemoryCache.Infrastructure
 
                 if (command == Constants.Commands.Refresh)
                 {
-                    _bigMemoryCache.Refresh();
-                    _bigMemoryCache.Count();
+                    await RefreshCacheAndPrintInfoAsync();
 
                     continue;
                 }
@@ -41,41 +47,49 @@ namespace Mego.MemoryCache.Infrastructure
 
         private void Init()
         {
-            _timer = new Timer(1000);
+            _timer = new Timer(Interval);
             _timer.Elapsed += async (_, __) => await TryRefreshMemoryCache();
             _timer.Start();
-
-            _bigMemoryCache = new BigMemoryCache();
-            _bigMemoryCache.Refresh();
         }
 
         private async Task TryRefreshMemoryCache()
         {
-            await using var connection = new SqlConnection("Server=localhost;Database=Mego;Trusted_Connection=True;");
-            await connection.OpenAsync();
-
-            var clientCommand = await GetClientCommand(connection);
+            using var clientCommandService = new ClientCommandService();
+            var clientCommand = await clientCommandService.GetClientCommandAsync(_name);
 
             if (clientCommand?.Command == Constants.Commands.Refresh)
             {
-                _bigMemoryCache.Refresh();
+                await RefreshCacheAndPrintInfoAsync();
 
-                await CompleteClientCommandAsync(connection, clientCommand);
+                await clientCommandService.CompleteClientCommandAsync(clientCommand);
             }
         }
 
-        private Task<ClientCommand> GetClientCommand(SqlConnection connection)
+        private async Task RefreshCacheAsync()
         {
-            const string querySql = "SELECT TOP(1) * FROM [dbo].[ClientCommand] WHERE [ClientName] = @ClientName AND [Completed] = 0";
+            using var dataService = new DataService();
+            var count = await dataService.GetAllCountAsync();
 
-            return connection.QueryFirstOrDefaultAsync<ClientCommand>(querySql, new { ClientName = _name });
+            var (batchSize, offset) = GetRange(count);
+            var cacheElements = await dataService.GetByRangeAsync(offset, batchSize);
+
+            _cache = cacheElements.ToDictionary(element => element.Key, element => element.Value);
         }
 
-        private Task CompleteClientCommandAsync(SqlConnection connection, ClientCommand clientCommand)
+        private async Task RefreshCacheAndPrintInfoAsync()
         {
-            const string commandSql = "UPDATE [dbo].[ClientCommand] SET [Completed] = @Completed WHERE [Id] = @Id";
+            await RefreshCacheAsync();
+            var count = _cache.Count;
 
-            return connection.ExecuteAsync(commandSql, new { clientCommand.Id, Completed = 1 });
+            Console.WriteLine($"The count of items in the cache: {count}");
+        }
+
+        private (long batchSize, long offset) GetRange(long countElements)
+        {
+            var batchSize = (long) Math.Ceiling(countElements / (double) _allClientCount);
+            var offset = _currentClientCount == 1 ? 0 : (_currentClientCount - 1) * batchSize;
+
+            return (batchSize, offset);
         }
     }
 }
