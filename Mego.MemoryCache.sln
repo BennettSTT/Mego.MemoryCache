@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mego.MemoryCache.Manager", "Mego.MemoryCache.Manager\Mego.MemoryCache.Manager.csproj", "{D633F755-0B75-4199-9EA3-1672CDC13292}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mego.MemoryCache.Client1", "Mego.MemoryCache.Client1\Mego.MemoryCache.Client1.csproj", "{25CB52CD-2772-4C28-B662-06529684526F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mego.MemoryCache.Client2", "Mego.MemoryCache.Client2\Mego.MemoryCache.Client2.csproj", "{AC4988EE-F318-4F02-980C-84487AB068A9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mego.MemoryCache.Infrastructure", "Mego.MemoryCache.Infrastructure\Mego.MemoryCache.Infrastructure.csproj", "{2ECB990B-AC1E-471E-935B-59A938D1F3E7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D633F755-0B75-4199-9EA3-1672CDC13292}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D633F755-0B75-4199-9EA3-1672CDC13292}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D633F755-0B75-4199-9EA3-1672CDC13292}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D633F755-0B75-4199-9EA3-1672CDC13292}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25CB52CD-2772-4C28-B662-06529684526F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25CB52CD-2772-4C28-B662-06529684526F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25CB52CD-2772-4C28-B662-06529684526F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25CB52CD-2772-4C28-B662-06529684526F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC4988EE-F318-4F02-980C-84487AB068A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC4988EE-F318-4F02-980C-84487AB068A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC4988EE-F318-4F02-980C-84487AB068A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC4988EE-F318-4F02-980C-84487AB068A9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ECB990B-AC1E-471E-935B-59A938D1F3E7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ECB990B-AC1E-471E-935B-59A938D1F3E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ECB990B-AC1E-471E-935B-59A938D1F3E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ECB990B-AC1E-471E-935B-59A938D1F3E7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
