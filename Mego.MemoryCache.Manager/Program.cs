@@ -31,16 +31,7 @@ namespace Mego.MemoryCache.Manager
 
                     foreach (var clientConfig in cacheConfig.ClientConfigs)
                     {
-                        const string commandSql = @"INSERT INTO [dbo].[ClientCommand]([ClientName],[Command],[Completed]) 
-                                                    VALUES (@ClientName, @Command, @Completed)";
-
-                        var parameters = new
-                        {
-                            ClientName = clientConfig.Name,
-                            Command = Constants.Commands.Refresh,
-                            Completed = 0
-                        };
-                        await connection.ExecuteAsync(commandSql, parameters);
+                        await InsertCommandAsync(connection, clientConfig.Name, Constants.Commands.Refresh);
                     }
 
                     continue;
@@ -48,6 +39,20 @@ namespace Mego.MemoryCache.Manager
 
                 Console.WriteLine("Command not supported.");
             }
+        }
+
+        private static async Task InsertCommandAsync(SqlConnection connection, string name, string command)
+        {
+            const string insertCommandSql = "INSERT INTO [dbo].[ClientCommand]([ClientName],[Command],[Completed]) VALUES (@ClientName, @Command, @Completed)";
+
+            var parameters = new
+            {
+                ClientName = name,
+                Command = command,
+                Completed = 0
+            };
+
+            await connection.ExecuteAsync(insertCommandSql, parameters);
         }
     }
 }

@@ -11,7 +11,7 @@ namespace Mego.MemoryCache.Infrastructure
     {
         private readonly string _name;
         private static Timer _timer;
-        
+
         private static BigMemoryCache _bigMemoryCache;
 
         public Client(string name)
@@ -21,12 +21,7 @@ namespace Mego.MemoryCache.Infrastructure
 
         public void Run()
         {
-            _timer = new Timer(1000);
-            _timer.Elapsed += async (_, __) => await HandleTimerAsync();
-            _timer.Start();
-
-            _bigMemoryCache = new BigMemoryCache();
-            _bigMemoryCache.Refresh();
+            Init();
 
             while (true)
             {
@@ -44,22 +39,43 @@ namespace Mego.MemoryCache.Infrastructure
             }
         }
 
-        private async Task HandleTimerAsync()
+        private void Init()
+        {
+            _timer = new Timer(1000);
+            _timer.Elapsed += async (_, __) => await TryRefreshMemoryCache();
+            _timer.Start();
+
+            _bigMemoryCache = new BigMemoryCache();
+            _bigMemoryCache.Refresh();
+        }
+
+        private async Task TryRefreshMemoryCache()
         {
             await using var connection = new SqlConnection("Server=localhost;Database=Mego;Trusted_Connection=True;");
             await connection.OpenAsync();
 
-            const string querySql = "SELECT TOP(1) * FROM [dbo].[ClientCommand] WHERE [ClientName] = @ClientName AND [Completed] = 0";
-            var clientCommand = await connection.QueryFirstOrDefaultAsync<ClientCommand>(querySql, new { ClientName = _name });
+            var clientCommand = await GetClientCommand(connection);
 
             if (clientCommand?.Command == Constants.Commands.Refresh)
             {
                 _bigMemoryCache.Refresh();
 
-                const string commandSql = "UPDATE [dbo].[ClientCommand] SET [Completed] = @Completed WHERE [Id] = @Id";
-
-                await connection.ExecuteAsync(commandSql, new { clientCommand.Id, Completed = 1 });
+                await CompleteClientCommandAsync(connection, clientCommand);
             }
+        }
+
+        private Task<ClientCommand> GetClientCommand(SqlConnection connection)
+        {
+            const string querySql = "SELECT TOP(1) * FROM [dbo].[ClientCommand] WHERE [ClientName] = @ClientName AND [Completed] = 0";
+
+            return connection.QueryFirstOrDefaultAsync<ClientCommand>(querySql, new { ClientName = _name });
+        }
+
+        private Task CompleteClientCommandAsync(SqlConnection connection, ClientCommand clientCommand)
+        {
+            const string commandSql = "UPDATE [dbo].[ClientCommand] SET [Completed] = @Completed WHERE [Id] = @Id";
+
+            return connection.ExecuteAsync(commandSql, new { clientCommand.Id, Completed = 1 });
         }
     }
 }

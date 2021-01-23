@@ -7,7 +7,7 @@ namespace Mego.MemoryCache.Client2
         static void Main(string[] args)
         {
             var client = new Client("Client2");
-            client.Run();        
+            client.Run();
         }
     }
 }
