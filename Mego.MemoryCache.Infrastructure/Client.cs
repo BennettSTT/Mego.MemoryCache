@@ -55,14 +55,19 @@ namespace Mego.MemoryCache.Infrastructure
         private async Task TryRefreshMemoryCache()
         {
             using var clientCommandService = new ClientCommandService();
-            var clientCommand = await clientCommandService.GetClientCommandAsync(_name);
 
-            if (clientCommand?.Command == Constants.Commands.Refresh)
+            var clientCommand = await clientCommandService.GetClientCommandAsync(_name);
+            if (clientCommand == null)
+            {
+                return;
+            }
+
+            if (clientCommand.Command == Constants.Commands.Refresh)
             {
                 await RefreshCacheAndPrintInfoAsync();
-
-                await clientCommandService.CompleteClientCommandAsync(clientCommand);
             }
+
+            await clientCommandService.CompleteClientCommandAsync(clientCommand);
         }
 
         private async Task RefreshCacheAsync()
