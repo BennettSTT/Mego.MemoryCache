@@ -19,5 +19,19 @@ namespace Mego.MemoryCache.Infrastructure.Services
 
             return Connection.ExecuteAsync(commandSql, new { clientCommand.Id, completed = 1 });
         }
+
+        public async Task InsertCommandAsync(string name, string command)
+        {
+            const string insertCommandSql = "INSERT INTO [dbo].[ClientCommand]([ClientName],[Command],[Completed]) VALUES (@ClientName, @Command, @Completed)";
+
+            var parameters = new
+            {
+                ClientName = name,
+                Command = command,
+                Completed = 0
+            };
+
+            await Connection.ExecuteAsync(insertCommandSql, parameters);
+        }
     }
 }

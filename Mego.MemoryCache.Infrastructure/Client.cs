@@ -14,7 +14,7 @@ namespace Mego.MemoryCache.Infrastructure
         private readonly int _allClientCount;
         private static Timer _timer;
 
-        private const int Interval = 1000; 
+        private const int CacheRefreshCheckInterval = 1000; 
         private static Dictionary<string, string> _cache;
 
         public Client(string name, int currentClientCount, int allClientCount)
@@ -47,7 +47,7 @@ namespace Mego.MemoryCache.Infrastructure
 
         private void Init()
         {
-            _timer = new Timer(Interval);
+            _timer = new Timer(CacheRefreshCheckInterval);
             _timer.Elapsed += async (_, __) => await TryRefreshMemoryCache();
             _timer.Start();
         }
@@ -79,9 +79,8 @@ namespace Mego.MemoryCache.Infrastructure
         private async Task RefreshCacheAndPrintInfoAsync()
         {
             await RefreshCacheAsync();
-            var count = _cache.Count;
 
-            Console.WriteLine($"The count of items in the cache: {count}");
+            Console.WriteLine($"The count of items in the cache: {_cache.Count}");
         }
 
         private (long batchSize, long offset) GetRange(long countElements)

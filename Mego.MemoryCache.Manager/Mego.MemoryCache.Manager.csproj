@@ -9,8 +9,4 @@
     <ProjectReference Include="..\Mego.MemoryCache.Infrastructure\Mego.MemoryCache.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Dapper" Version="2.0.78" />
-  </ItemGroup>
-
 </Project>
