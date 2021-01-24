@@ -1,4 +1,6 @@
-﻿namespace Mego.MemoryCache.Infrastructure.Models
+﻿using System;
+
+namespace Mego.MemoryCache.Infrastructure.Models
 {
     public class ClientCommand
     {
@@ -9,5 +11,7 @@
         public string Command { get; set; }
 
         public bool Completed { get; set; }
+
+        public DateTime CreationDate { get; set; }
     }
 }

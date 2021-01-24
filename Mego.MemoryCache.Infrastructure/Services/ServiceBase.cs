@@ -15,6 +15,8 @@ namespace Mego.MemoryCache.Infrastructure.Services
 
         public void Dispose()
         {
+            if (Connection == null) return;
+
             Connection.Dispose();
             Connection = null;
         }
