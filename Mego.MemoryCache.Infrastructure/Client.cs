@@ -1,5 +1,7 @@
-﻿using Mego.MemoryCache.Infrastructure.Services;
+﻿using Mego.MemoryCache.Infrastructure.Models;
+using Mego.MemoryCache.Infrastructure.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,18 +12,18 @@ namespace Mego.MemoryCache.Infrastructure
     public class Client
     {
         private readonly string _name;
-        private readonly int _currentClientCount;
-        private readonly int _allClientCount;
         private static Timer _timer;
 
-        private const int CacheRefreshCheckInterval = 1000; 
-        private static Dictionary<string, string> _cache;
+        // Интервал и размер батча можно настраивать
+        // Например, можно брать значения из конфига
+        private const int CacheRefreshCheckInterval = 1000;
+        private const int BatchSize = 100;
 
-        public Client(string name, int currentClientCount, int allClientCount)
+        private static readonly ConcurrentDictionary<string, string> Cache = new ConcurrentDictionary<string, string>();
+
+        public Client(string name)
         {
             _name = name;
-            _currentClientCount = currentClientCount;
-            _allClientCount = allClientCount;
         }
 
         public async Task RunAsync()
@@ -52,6 +54,24 @@ namespace Mego.MemoryCache.Infrastructure
             _timer.Start();
         }
 
+        /// <summary>
+        /// Метод был добавлен для демонстрации чтения данных бизнес логикой, явно нигде не вызывается
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public async Task<string> GetValueByKey(string key)
+        {
+            if (Cache.TryGetValue(key, out var value))
+            {
+                return value;
+            }
+
+            using var dataService = new DataService();
+            var data = await dataService.GetByKeyAsync(key);
+
+            return data != null ? Cache.GetOrAdd(key, data.Value) : null;
+        }
+
         private async Task TryRefreshMemoryCache()
         {
             using var clientCommandService = new ClientCommandService();
@@ -70,30 +90,26 @@ namespace Mego.MemoryCache.Infrastructure
             await clientCommandService.CompleteClientCommandAsync(clientCommand);
         }
 
-        private async Task RefreshCacheAsync()
-        {
-            using var dataService = new DataService();
-            var count = await dataService.GetAllCountAsync();
-
-            var (batchSize, offset) = GetRange(count);
-            var cacheElements = await dataService.GetByRangeAsync(offset, batchSize);
-
-            _cache = cacheElements.ToDictionary(element => element.Key, element => element.Value);
-        }
-
         private async Task RefreshCacheAndPrintInfoAsync()
         {
-            await RefreshCacheAsync();
+            Cache.Clear();
 
-            Console.WriteLine($"The count of items in the cache: {_cache.Count}");
-        }
+            var offset = 0;
+            IEnumerable<Data> currentDataElements;
 
-        private (long batchSize, long offset) GetRange(long countElements)
-        {
-            var batchSize = (long) Math.Ceiling(countElements / (double) _allClientCount);
-            var offset = _currentClientCount == 1 ? 0 : (_currentClientCount - 1) * batchSize;
+            using var dataService = new DataService();
 
-            return (batchSize, offset);
+            while ((currentDataElements = await dataService.GetByRangeAsync(offset, BatchSize)).Any())
+            {
+                foreach (var data in currentDataElements)
+                {
+                    Cache.TryAdd(data.Key, data.Value);
+                }
+
+                offset += BatchSize;
+            }
+
+            Console.WriteLine($"The count of items in the cache: {Cache.Count}");
         }
     }
 }

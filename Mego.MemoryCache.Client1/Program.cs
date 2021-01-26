@@ -7,7 +7,7 @@ namespace Mego.MemoryCache.Client1
     {
         static async Task Main(string[] args)
         {
-            var client = new Client("Client1", 1, 2);
+            var client = new Client("Client1");
             await client.RunAsync();
         }
     }

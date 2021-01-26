@@ -7,9 +7,10 @@ namespace Mego.MemoryCache.Infrastructure.Services
 {
     public class DataService : ServiceBase
     {
-        public Task<long> GetAllCountAsync()
+        public Task<Data> GetByKeyAsync(string key)
         {
-            return Connection.ExecuteScalarAsync<long>("SELECT COUNT(*) FROM [dbo].[Data]");
+            const string querySql = "SELECT * FROM [dbo].[Data] WHERE [Key] = @Key";
+            return Connection.QueryFirstOrDefaultAsync<Data>(querySql, new { Key = key });
         }
 
         public Task<IEnumerable<Data>> GetByRangeAsync(long offset, long batchSize)
