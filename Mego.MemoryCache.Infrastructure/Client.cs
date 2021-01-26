@@ -57,8 +57,6 @@ namespace Mego.MemoryCache.Infrastructure
         /// <summary>
         /// Метод был добавлен для демонстрации чтения данных бизнес логикой, явно нигде не вызывается
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
         public async Task<string> GetValueByKey(string key)
         {
             if (Cache.TryGetValue(key, out var value))
@@ -90,7 +88,7 @@ namespace Mego.MemoryCache.Infrastructure
             await clientCommandService.CompleteClientCommandAsync(clientCommand);
         }
 
-        private async Task RefreshCacheAndPrintInfoAsync()
+        private static async Task RefreshCacheAsync()
         {
             Cache.Clear();
 
@@ -108,6 +106,11 @@ namespace Mego.MemoryCache.Infrastructure
 
                 offset += BatchSize;
             }
+        }
+
+        private static async Task RefreshCacheAndPrintInfoAsync()
+        {
+            await RefreshCacheAsync();
 
             Console.WriteLine($"The count of items in the cache: {Cache.Count}");
         }
